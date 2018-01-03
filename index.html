@@ -1,20 +1,32 @@
 <doctype html>
-<html>
+  <html>
+
   <head>
     <title> Qualium Systems Javascript test task </title>
     <script type="text/javascript" src="main.js"></script>
     <style>
-      canvas {        
+      * {
+        user-drag: none;
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+      }
+
+      canvas {
         background: yellow;
       }
     </style>
   </head>
+
   <body>
     <div>
-      <button> Start </button>
-      <button> Stop </button>
+      <button id="start"> Start </button>
+      <button id="stop"> Stop </button>
       <span> Score: <span id="score"> 0 </span> </span>
     </div>
-    <canvas width="640" height="480" id="canvas"></canvas>      
+    <canvas width="640" height="480" id="canvas" draggable="false"></canvas>
   </body>
-</html>
+
+  </html>
