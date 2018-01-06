@@ -11,10 +11,12 @@ class Game {
     this.score = 0,
     this.squares = [],
     this.scuareSize = 20,
-    this.minSpeed = 1,
-    this.maxSpeed = 3,
-    this.minTimeout = 700,
-    this.maxTimeout = 1500;
+    this.minSpeed = 1, // minSpeed * 60 pixels per second
+    this.maxSpeed = 3, // maxSpeed * 60 pixels per second
+    this.fps = 60,
+    this.minSpawnTime = 800, // milliseconds
+    this.maxSpawnTime = 1600, // milliseconds
+    this.draw = this.fpsControl(this.animate.bind(this));
     document.getElementById('start').onclick = this.startGame.bind(this);
     document.getElementById('stop').onclick = this.stopGame.bind(this);
 
@@ -34,11 +36,9 @@ class Game {
   startGame() {
     this.score = 0;
     this.squares = [];
-    this.addSquare();
     if (!this.inProgress) {
-      this.animate();
+      this.draw();
       this.inProgress = true;
-      this.generateSquares();
     }
   }
 
@@ -50,10 +50,33 @@ class Game {
     }
   }
 
+  fpsControl(drawFunc) {
+    var fps = this.fps;
+    var now;
+    var then = Date.now();
+    var interval = 1000 / fps;
+    var delta;
+    var timeToSpawn = 0;
+
+    return function drawStep() {
+      this.animation = requestAnimationFrame(drawStep.bind(this));
+      now = Date.now();
+      delta = now - then;
+      if (delta > interval) {
+        then = now - (delta % interval);
+        timeToSpawn -= delta;
+        if (timeToSpawn <= 0) {
+          this.addSquare();
+          timeToSpawn = xrandom(this.minSpawnTime, this.maxSpawnTime);
+        }
+        drawFunc();
+      }
+    }
+  }
+
   animate() {
     this.scoreSpan.textContent = this.score;
     this.ctx.clearRect(0, 0, this.canvas.clientWidth, this.canvas.clientWidth);
-
     for (let i in this.squares) {
       let square = this.squares[i];
       if (square.y >= this.canvas.clientHeight) {
@@ -61,21 +84,7 @@ class Game {
       }
       this.ctx.fillStyle = square.color;
       this.ctx.fillRect(square.x, square.y, this.scuareSize, this.scuareSize);
-      square.y += square.speed;
-    }
-
-    this.animation = requestAnimationFrame(this.animate.bind(this));
-  }
-
-  generateSquares() {
-    let that = this;
-    if (this.inProgress) {
-      setTimeout(function() {
-        if (this.inProgress) {
-          that.addSquare();
-          that.generateSquares();
-        }
-      }.bind(this), xrandom(that.minTimeout, that.maxTimeout));
+      square.y += square.speed * 60 / this.fps;
     }
   }
 
@@ -91,7 +100,7 @@ class Game {
 }
 
 function xrandom(min, max) {
-  return Math.floor(Math.random() * (min - max) + max);
+  return Math.round(Math.random() * (min - max) + max);
 }
 
 function randomColor() {
